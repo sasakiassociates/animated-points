@@ -1,0 +1,1 @@
+export { default as AnimatedPoints } from './src/AnimatedPoints';
