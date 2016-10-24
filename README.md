@@ -21,3 +21,5 @@ setTimeout(function() {
 }, 2000);
 
 ```
+
+for a more complete example on how to use this with three.js, see the demo in 'examples'.

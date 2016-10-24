@@ -271,19 +271,19 @@ var AnimatedPoints = function () {
                         }
                     }
                 });
-                if (obj.x !== null) {
+                if (obj.x !== undefined) {
                     if (_this3.toPositions[i * 3] !== obj.x) {
                         _this3.toPositions[i * 3] = obj.x;
                         keysWithChanges['position'] = true;
                     }
                 }
-                if (obj.y !== null) {
+                if (obj.y !== undefined) {
                     if (_this3.toPositions[i * 3 + 1] !== obj.y) {
                         _this3.toPositions[i * 3 + 1] = obj.y;
                         keysWithChanges['position'] = true;
                     }
                 }
-                if (obj.z !== null) {
+                if (obj.z !== undefined) {
                     if (_this3.toPositions[i * 3 + 2] !== obj.z) {
                         _this3.toPositions[i * 3 + 2] = obj.z;
                         keysWithChanges['position'] = true;

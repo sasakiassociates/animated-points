@@ -110,19 +110,19 @@ export default class AnimatedPoints {
                     }
                 }
             });
-            if (obj.x !== null) {
+            if (obj.x !== undefined) {
                 if (this.toPositions[i * 3] !== obj.x) {
                     this.toPositions[i * 3] = obj.x;
                     keysWithChanges['position'] = true;
                 }
             }
-            if (obj.y !== null) {
+            if (obj.y !== undefined) {
                 if (this.toPositions[i * 3 + 1] !== obj.y) {
                     this.toPositions[i * 3 + 1] = obj.y;
                     keysWithChanges['position'] = true;
                 }
             }
-            if (obj.z !== null) {
+            if (obj.z !== undefined) {
                 if (this.toPositions[i * 3 + 2] !== obj.z) {
                     this.toPositions[i * 3 + 2] = obj.z;
                     keysWithChanges['position'] = true;
