@@ -32,7 +32,9 @@ var _getPositions2 = function (inputs) {
             x: input.sin * 400 + Math.random() * 20,
             y: input.cos * 400 + Math.random() * 20,
             size: 1,
-            color: '#f0ff0f'
+            r: Math.abs(input.tan),
+            g: Math.abs(input.sin),
+            b: Math.abs(input.cos),
         });
     });
 

@@ -132,7 +132,6 @@ export default class AnimatedPoints {
 
         Object.keys(keysWithChanges).forEach((key) => {
             keyMatch[key].forEach((attr, i) => {
-                console.log(`Needs update ${attr}`);
                 this.geometry.attributes[attr].needsUpdate = true;
             });
         });
