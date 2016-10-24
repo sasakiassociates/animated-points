@@ -1,6 +1,14 @@
+(function (exports) {
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+var animated_points_vertex = "attribute float size_from;\r\nattribute float size_to;\r\n\r\nattribute float r_from;\r\nattribute float g_from;\r\nattribute float b_from;\r\n\r\nattribute float r_to;\r\nattribute float g_to;\r\nattribute float b_to;\r\n\r\nattribute vec3 position_to;\r\n\r\nvarying vec3 vColor;\r\nuniform float animationPos;\r\n\r\nvoid main() {\r\n    vColor = vec3(\r\n        r_from * (1.0 - animationPos) + r_to * animationPos,\r\n        g_from * (1.0 - animationPos) + g_to * animationPos,\r\n        b_from * (1.0 - animationPos) + b_to * animationPos\r\n    );\r\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);\r\n    gl_PointSize = size_from * (1.0 - animationPos) + size_to * animationPos;\r\n}";
+
+var animated_points_fragment = "varying vec3 vColor;\r\n\r\nvoid main() {\r\n    gl_FragColor = vec4( vColor, 1.0 );\r\n}";
+
+var ShaderIndex = {
+    animated_points_vertex: animated_points_vertex,
+    animated_points_fragment: animated_points_fragment
+};
 
 var asyncGenerator = function () {
   function AwaitValue(value) {
@@ -191,14 +199,6 @@ var AnimatedPoints = function () {
         value: function getMaterial() {
             var _this2 = this;
 
-            //another approach to using shader glsl files and importing them into js https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderChunk.js
-            var vertexShader = function vertexShader() {
-                return '\n        attribute float size_from;\n        attribute float size_to;\n        \n        attribute float r_from;\n        attribute float g_from;\n        attribute float b_from; \n        \n        attribute float r_to;\n        attribute float g_to;\n        attribute float b_to;\n         \n        attribute vec3 position_to;\n\n        varying vec3 vColor;\n        uniform float animationPos;\n        \n        void main() {\n            vColor = vec3(\n                r_from * (1.0 - animationPos) + r_to * animationPos,\n                g_from * (1.0 - animationPos) + g_to * animationPos,\n                b_from * (1.0 - animationPos) + b_to * animationPos            \n            );\n            gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);\n            gl_PointSize = size_from * (1.0 - animationPos) + size_to * animationPos;\n        }\n        ';
-            };
-            var fragmentShader = function fragmentShader() {
-                return '\n            varying vec3 vColor;\n\t\t\t\n\t\t\tvoid main() {\n\t\t\t\tgl_FragColor = vec4( vColor, 1.0 );\n\t\t\t}\n        ';
-            };
-
             //"position" is used internally by ThreeJS so the name cannot change
             this.geometry.addAttribute('position', new THREE.BufferAttribute(this.fromPositions, 3));
             this.geometry.addAttribute('position_to', new THREE.BufferAttribute(this.toPositions, 3));
@@ -212,8 +212,8 @@ var AnimatedPoints = function () {
                 uniforms: {
                     animationPos: { value: this.animationPos }
                 },
-                vertexShader: vertexShader(),
-                fragmentShader: fragmentShader()
+                vertexShader: ShaderIndex.animated_points_vertex,
+                fragmentShader: ShaderIndex.animated_points_fragment
 
             });
         }
@@ -348,4 +348,6 @@ var AnimatedPoints = function () {
 }();
 
 exports.AnimatedPoints = AnimatedPoints;
+
+}((this.AnimatedPoints = this.AnimatedPoints || {})));
 //# sourceMappingURL=animated-points.js.map

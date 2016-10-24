@@ -1,5 +1,3 @@
-#version 120
-
 attribute float size_from;
 attribute float size_to;
 

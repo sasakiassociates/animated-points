@@ -1,5 +1,3 @@
-#version 120
-
 varying vec3 vColor;
 
 void main() {
