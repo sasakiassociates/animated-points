@@ -1,4 +1,5 @@
 'use strict';
+import { ShaderIndex } from './glsl/ShaderIndex';
 export default class AnimatedPoints {
 
     constructor(numberOfPoints) {
@@ -41,46 +42,6 @@ export default class AnimatedPoints {
     }
 
     getMaterial() {
-        //another approach to using shader glsl files and importing them into js https://github.com/mrdoob/three.js/blob/master/src/renderers/shaders/ShaderChunk.js
-        var vertexShader = () => {
-            return `
-        attribute float size_from;
-        attribute float size_to;
-        
-        attribute float r_from;
-        attribute float g_from;
-        attribute float b_from; 
-        
-        attribute float r_to;
-        attribute float g_to;
-        attribute float b_to;
-         
-        attribute vec3 position_to;
-
-        varying vec3 vColor;
-        uniform float animationPos;
-        
-        void main() {
-            vColor = vec3(
-                r_from * (1.0 - animationPos) + r_to * animationPos,
-                g_from * (1.0 - animationPos) + g_to * animationPos,
-                b_from * (1.0 - animationPos) + b_to * animationPos            
-            );
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);
-            gl_PointSize = size_from * (1.0 - animationPos) + size_to * animationPos;
-        }
-        `
-        };
-        var fragmentShader = () => {
-            return `
-            varying vec3 vColor;
-			
-			void main() {
-				gl_FragColor = vec4( vColor, 1.0 );
-			}
-        `
-        };
-
         //"position" is used internally by ThreeJS so the name cannot change
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.fromPositions, 3));
         this.geometry.addAttribute('position_to', new THREE.BufferAttribute(this.toPositions, 3));
@@ -94,8 +55,8 @@ export default class AnimatedPoints {
             uniforms: {
                 animationPos: {value: this.animationPos}
             },
-            vertexShader: vertexShader(),
-            fragmentShader: fragmentShader()
+            vertexShader: ShaderIndex.animated_points_vertex,
+            fragmentShader: ShaderIndex.animated_points_fragment
 
         });
     }
