@@ -1,6 +1,6 @@
 {
   "name": "animated-points",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A fast animated Point Cloud for Three.js",
   "main": "dist/animated-points.js",
   "module": "dist/animated-points.es.js",
