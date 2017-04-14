@@ -1,5 +1,5 @@
 'use strict';
-import { ShaderIndex } from './glsl/ShaderIndex';
+import {ShaderIndex} from './glsl/ShaderIndex';
 export default class AnimatedPoints {
 
     constructor(numberOfPoints) {
@@ -47,8 +47,8 @@ export default class AnimatedPoints {
         this.geometry.addAttribute('position_to', new THREE.BufferAttribute(this.toPositions, 3));
 
         Object.keys(this.fromProperties).forEach((k) => {
-            this.geometry.addAttribute(k+'_from', new THREE.BufferAttribute(this.fromProperties[k], 1));
-            this.geometry.addAttribute(k+'_to', new THREE.BufferAttribute(this.toProperties[k], 1));
+            this.geometry.addAttribute(k + '_from', new THREE.BufferAttribute(this.fromProperties[k], 1));
+            this.geometry.addAttribute(k + '_to', new THREE.BufferAttribute(this.toProperties[k], 1));
         });
 
         return new THREE.ShaderMaterial({
@@ -96,6 +96,7 @@ export default class AnimatedPoints {
             });
             this.fromPositions[i * 3] = this.fromPositions[i * 3] * (1 - this.animationPos) + this.toPositions[i * 3] * this.animationPos;
             this.fromPositions[i * 3 + 1] = this.fromPositions[i * 3 + 1] * (1 - this.animationPos) + this.toPositions[i * 3 + 1] * this.animationPos;
+            this.fromPositions[i * 3 + 2] = this.fromPositions[i * 3 + 2] * (1 - this.animationPos) + this.toPositions[i * 3 + 2] * this.animationPos;
         });
 
         properties.forEach((obj, i) => {
@@ -136,9 +137,50 @@ export default class AnimatedPoints {
             });
         });
 
+        this.startAnimation();
+    }
+
+    startAnimation() {
         //TODO if we set the same targets twice it won't call needsUpdate, but it will reset the animation
         this.setAnimationTime(0);
+        this.animationComplete = false;
+    }
 
+    attributeKeys(propKeys) {
+        const keyMatch = {
+            'position': ['position', 'position_to'],//special case since 'position' is hard-coded in ThreeJSs
+        };
+
+        for (let k of propKeys) {
+            keyMatch[k] = [k + '_from', k + '_to']
+        }
+        return keyMatch;
+    }
+
+    setEndToStart() {
+        const propKeys = Object.keys(this.fromProperties);
+        const keyMatch = this.attributeKeys(propKeys);
+        const n = this.numberOfPoints;
+        // console.time('setEndToStart');
+        for (let i = 0; i < n; i++) {
+            for (let k of propKeys) {
+                this.fromProperties[k][i] = this.toProperties[k][i];
+            }
+            this.fromPositions[i * 3] = this.toPositions[i * 3];
+            this.fromPositions[i * 3 + 1] = this.toPositions[i * 3 + 1];
+            this.fromPositions[i * 3 + 2] = this.toPositions[i * 3 + 2];
+        }
+
+        //once they are all reset, we need to push these changes through
+        for (let key of Object.keys(keyMatch)) {
+            for (let attr of keyMatch[key]) {
+                // console.log(`Needs update ${attr}`);
+                this.geometry.attributes[attr].needsUpdate = true;
+            }
+        }
+        // this.geometry.verticesNeedUpdate = true;
+        this.geometry.computeBoundingSphere();//if we don't recompute, then the point cloud object may be hidden if the current boundingSphere is not in view
+        // console.timeEnd('setEndToStart');
     }
 
     setAnimationTime(val) {
@@ -146,6 +188,11 @@ export default class AnimatedPoints {
         this.animationPos = this.easingFunction(this.animationTime);
 
         this.material.uniforms.animationPos.value = this.animationPos;
+
+        if (!this.animationComplete && this.animationTime === 1) {
+            this.animationComplete = true;
+            this.setEndToStart();            
+        }
     }
 
     step(amt) {
