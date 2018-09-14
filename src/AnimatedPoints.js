@@ -15,12 +15,14 @@ export default class AnimatedPoints {
             r: new Float32Array(this.numberOfPoints),
             g: new Float32Array(this.numberOfPoints),
             b: new Float32Array(this.numberOfPoints),
+            a: new Float32Array(this.numberOfPoints),
             size: new Float32Array(this.numberOfPoints),
         };
         this.toProperties = {
             r: new Float32Array(this.numberOfPoints),
             g: new Float32Array(this.numberOfPoints),
             b: new Float32Array(this.numberOfPoints),
+            a: new Float32Array(this.numberOfPoints),
             size: new Float32Array(this.numberOfPoints),
         };
 
@@ -55,6 +57,7 @@ export default class AnimatedPoints {
             uniforms: {
                 animationPos: {value: this.animationPos}
             },
+            transparent: true,
             vertexShader: ShaderIndex.animated_points_vertex,
             fragmentShader: ShaderIndex.animated_points_fragment
 
@@ -111,6 +114,7 @@ export default class AnimatedPoints {
                     }
                 }
             });
+            AnimatedParticles._clamp(obj, ['r', 'g', 'b', 'a'], 0, 1);
             if (obj.x !== undefined) {
                 if (this.toPositions[i * 3] !== obj.x) {
                     this.toPositions[i * 3] = obj.x;
@@ -212,17 +216,28 @@ export default class AnimatedPoints {
         } : null;
     }
 
+    static _clamp(obj, props, min, max) {
+        for (let prop of props) {
+            obj[prop] = Math.min(Math.max(obj[prop], min), max);
+        }
+    }
+
     static _injectRGB(obj, color) {
         var rgb = AnimatedPoints._hexToRgb(color);
         if (!rgb) {
             obj.r = 0;
             obj.g = 0;
             obj.b = 0;
+            obj.a = 0;
             return;
         }
         obj.r = rgb.r / 255;
         obj.g = rgb.g / 255;
         obj.b = rgb.b / 255;
+
+        if (!obj.a) {
+            obj.a = 1;
+        }
 
     }
 }
