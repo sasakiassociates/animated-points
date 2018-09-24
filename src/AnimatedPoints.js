@@ -1,8 +1,9 @@
 'use strict';
 import {ShaderIndex} from './glsl/ShaderIndex';
+
 export default class AnimatedPoints {
 
-    constructor(numberOfPoints) {
+    constructor(numberOfPoints, sizeAttenuation = false) {
         this.animationTime = 0;
         this.animationPos = 0;
 
@@ -11,6 +12,7 @@ export default class AnimatedPoints {
         };
 
         this.numberOfPoints = numberOfPoints;
+        this.sizeAttenuation = sizeAttenuation;
         this.fromProperties = {
             r: new Float32Array(this.numberOfPoints),
             g: new Float32Array(this.numberOfPoints),
@@ -55,7 +57,8 @@ export default class AnimatedPoints {
 
         return new THREE.ShaderMaterial({
             uniforms: {
-                animationPos: {value: this.animationPos}
+                animationPos: {value: this.animationPos},
+                scale: {type: 'f', value: (this.sizeAttenuation) ? window.innerHeight / 2 : 0},
             },
             transparent: true,
             vertexShader: ShaderIndex.animated_points_vertex,
@@ -114,7 +117,7 @@ export default class AnimatedPoints {
                     }
                 }
             });
-            AnimatedParticles._clamp(obj, ['r', 'g', 'b', 'a'], 0, 1);
+            AnimatedPoints._clamp(obj, ['r', 'g', 'b', 'a'], 0, 1);
             if (obj.x !== undefined) {
                 if (this.toPositions[i * 3] !== obj.x) {
                     this.toPositions[i * 3] = obj.x;
@@ -195,7 +198,7 @@ export default class AnimatedPoints {
 
         if (!this.animationComplete && this.animationTime === 1) {
             this.animationComplete = true;
-            this.setEndToStart();            
+            this.setEndToStart();
         }
     }
 

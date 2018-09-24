@@ -15,6 +15,7 @@ attribute vec3 position_to;
 
 varying vec4 vColor;
 uniform float animationPos;
+uniform float scale;
 
 void main() {
     vColor = vec4(
@@ -23,6 +24,12 @@ void main() {
         b_from * (1.0 - animationPos) + b_to * animationPos,
         a_from * (1.0 - animationPos) + a_to * animationPos
     );
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);
-    gl_PointSize = size_from * (1.0 - animationPos) + size_to * animationPos;
+    vec4 mvPosition = modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    float pointSize = size_from * (1.0 - animationPos) + size_to * animationPos;
+    if (scale > 0.0) {
+        gl_PointSize = pointSize * (scale / length( mvPosition.xyz ));
+    } else {
+        gl_PointSize = pointSize;
+    }
 }

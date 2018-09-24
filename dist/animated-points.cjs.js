@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var animated_points_vertex = "attribute float size_from;\r\nattribute float size_to;\r\n\r\nattribute float r_from;\r\nattribute float g_from;\r\nattribute float b_from;\r\n\r\nattribute float r_to;\r\nattribute float g_to;\r\nattribute float b_to;\r\n\r\nattribute vec3 position_to;\r\n\r\nvarying vec3 vColor;\r\nuniform float animationPos;\r\n\r\nvoid main() {\r\n    vColor = vec3(\r\n        r_from * (1.0 - animationPos) + r_to * animationPos,\r\n        g_from * (1.0 - animationPos) + g_to * animationPos,\r\n        b_from * (1.0 - animationPos) + b_to * animationPos\r\n    );\r\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);\r\n    gl_PointSize = size_from * (1.0 - animationPos) + size_to * animationPos;\r\n}";
+var animated_points_vertex = "attribute float size_from;\r\nattribute float size_to;\r\n\r\nattribute float r_from;\r\nattribute float g_from;\r\nattribute float b_from;\r\nattribute float a_from;\r\n\r\nattribute float r_to;\r\nattribute float g_to;\r\nattribute float b_to;\r\nattribute float a_to;\r\n\r\nattribute vec3 position_to;\r\n\r\nvarying vec4 vColor;\r\nuniform float animationPos;\r\nuniform float scale;\r\n\r\nvoid main() {\r\n    vColor = vec4(\r\n        r_from * (1.0 - animationPos) + r_to * animationPos,\r\n        g_from * (1.0 - animationPos) + g_to * animationPos,\r\n        b_from * (1.0 - animationPos) + b_to * animationPos,\r\n        a_from * (1.0 - animationPos) + a_to * animationPos\r\n    );\r\n    vec4 mvPosition = modelViewMatrix * vec4(position * (1.0 - animationPos) + position_to * animationPos, 1.0);\r\n    gl_Position = projectionMatrix * mvPosition;\r\n    float pointSize = size_from * (1.0 - animationPos) + size_to * animationPos;\r\n    if (scale > 0.0) {\r\n        gl_PointSize = pointSize * (scale / length( mvPosition.xyz ));\r\n    } else {\r\n        gl_PointSize = pointSize;\r\n    }\r\n}";
 
-var animated_points_fragment = "varying vec3 vColor;\r\n\r\nvoid main() {\r\n    gl_FragColor = vec4( vColor, 1.0 );\r\n}";
+var animated_points_fragment = "varying vec4 vColor;\r\n\r\nvoid main() {\r\n    gl_FragColor = vColor;\r\n}";
 
 var ShaderIndex = {
     animated_points_vertex: animated_points_vertex,
@@ -152,6 +152,7 @@ var AnimatedPoints = function () {
     function AnimatedPoints(numberOfPoints) {
         var _this = this;
 
+        var sizeAttenuation = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
         classCallCheck(this, AnimatedPoints);
 
         this.animationTime = 0;
@@ -162,16 +163,19 @@ var AnimatedPoints = function () {
         };
 
         this.numberOfPoints = numberOfPoints;
+        this.sizeAttenuation = sizeAttenuation;
         this.fromProperties = {
             r: new Float32Array(this.numberOfPoints),
             g: new Float32Array(this.numberOfPoints),
             b: new Float32Array(this.numberOfPoints),
+            a: new Float32Array(this.numberOfPoints),
             size: new Float32Array(this.numberOfPoints)
         };
         this.toProperties = {
             r: new Float32Array(this.numberOfPoints),
             g: new Float32Array(this.numberOfPoints),
             b: new Float32Array(this.numberOfPoints),
+            a: new Float32Array(this.numberOfPoints),
             size: new Float32Array(this.numberOfPoints)
         };
 
@@ -211,8 +215,10 @@ var AnimatedPoints = function () {
 
             return new THREE.ShaderMaterial({
                 uniforms: {
-                    animationPos: { value: this.animationPos }
+                    animationPos: { value: this.animationPos },
+                    scale: { type: 'f', value: this.sizeAttenuation ? window.innerHeight / 2 : 0 }
                 },
+                transparent: true,
                 vertexShader: ShaderIndex.animated_points_vertex,
                 fragmentShader: ShaderIndex.animated_points_fragment
 
@@ -273,6 +279,7 @@ var AnimatedPoints = function () {
                         }
                     }
                 });
+                AnimatedPoints._clamp(obj, ['r', 'g', 'b', 'a'], 0, 1);
                 if (obj.x !== undefined) {
                     if (_this3.toPositions[i * 3] !== obj.x) {
                         _this3.toPositions[i * 3] = obj.x;
@@ -466,6 +473,34 @@ var AnimatedPoints = function () {
             } : null;
         }
     }, {
+        key: '_clamp',
+        value: function _clamp(obj, props, min, max) {
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
+
+            try {
+                for (var _iterator5 = props[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var prop = _step5.value;
+
+                    obj[prop] = Math.min(Math.max(obj[prop], min), max);
+                }
+            } catch (err) {
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
+                    }
+                } finally {
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
+                    }
+                }
+            }
+        }
+    }, {
         key: '_injectRGB',
         value: function _injectRGB(obj, color) {
             var rgb = AnimatedPoints._hexToRgb(color);
@@ -473,11 +508,16 @@ var AnimatedPoints = function () {
                 obj.r = 0;
                 obj.g = 0;
                 obj.b = 0;
+                obj.a = 0;
                 return;
             }
             obj.r = rgb.r / 255;
             obj.g = rgb.g / 255;
             obj.b = rgb.b / 255;
+
+            if (!obj.a) {
+                obj.a = 1;
+            }
         }
     }]);
     return AnimatedPoints;
